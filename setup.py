@@ -24,13 +24,13 @@ assert __version__ is not None
 
 
 setup(
-    name = 'gearman3',
+    name = 'pygearman',
     version = __version__,
-    author = 'Wellcome Digital Platform',
-    author_email = 'wellcomedigitalplatform@wellcome.ac.uk',
+    author = 'nerou GmbH',
+    author_email = 'info@nerou.de',
     description = 'A Python 3 fork of the Gearman API - Client, worker, and admin client interfaces',
     long_description=open(README).read(),
-    url = 'https://github.com/wellcometrust/python-gearman',
+    url = 'https://github.com/nerou42/pygearman',
     packages = ['gearman'],
     license='Apache / MIT',
     classifiers = [
@@ -39,11 +39,11 @@ setup(
         'License :: OSI Approved :: Apache Software License',
         'Natural Language :: English',
         'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 2.4',
-        'Programming Language :: Python :: 2.5',
-        'Programming Language :: Python :: 2.6',
-        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3',
+        'Programming Language :: Python :: 3.2',
+        'Programming Language :: Python :: 3.6',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.12',
         'Topic :: Software Development :: Libraries :: Python Modules',
     ],
 )

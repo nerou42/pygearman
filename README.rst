@@ -1,13 +1,14 @@
-python-gearman
+pygearman
 ==============
 
 This is a Gearman API written in Python -- client, worker and admin client interfaces.
 
 For information about Gearman and a C-based Gearman server, see `<http://gearman.org/>`_.
 
-This is a fork of the original `Yelp/python-gearman <https://github.com/Yelp/python-gearman>`_ project, which adds support for Python 3.
-You can use this library if you have an existing project that uses python-gearman and you want to upgrade to Python 3, but you probably shouldn't use it for a new project.
+This is a fork of the `wellcomecollection/python-gearman <https://github.com/wellcomecollection/python-gearman>`_ project, which is a fork of the original `Yelp/python-gearman <https://github.com/Yelp/python-gearman>`_ project.
+You can use this library if you have an existing project that uses python-gearman or gearman3 and you want to upgrade to Python 3.2+.
 
+This fork fixes the compatibility to Python 3.2+ and limits the task names to UTF-8 strings, which makes them a little bit easier to handle.
 
 Installation
 ************
@@ -25,7 +26,7 @@ The library is tested with Python 2.7, 3.5 and 3.6.
 Usage
 *****
 
-This is a drop-in replacement for the 2.x python-gearman library.
+This is a drop-in replacement for the 2.x python-gearman and 0.2 gearman3 libraries.
 There are docs at `<https://pythonhosted.org/gearman/>`_.
 
 
