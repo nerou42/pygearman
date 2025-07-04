@@ -6,9 +6,9 @@ This is a Gearman API written in Python -- client, worker and admin client inter
 For information about Gearman and a C-based Gearman server, see `<http://gearman.org/>`_.
 
 This is a fork of the `wellcomecollection/python-gearman <https://github.com/wellcomecollection/python-gearman>`_ project, which is a fork of the original `Yelp/python-gearman <https://github.com/Yelp/python-gearman>`_ project.
-You can use this library if you have an existing project that uses python-gearman or gearman3 and you want to upgrade to Python 3.2+.
+You can use this library if you have an existing project that uses python-gearman or gearman3 and you want to upgrade to Python 3.9+.
 
-This fork fixes the compatibility to Python 3.2+ and limits the task names to UTF-8 strings, which makes them a little bit easier to handle.
+This fork fixes the compatibility to Python 3.9+ and limits the task names to UTF-8 strings, which makes them a little bit easier to handle.
 
 Installation
 ************

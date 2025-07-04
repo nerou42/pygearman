@@ -40,7 +40,6 @@ setup(
         'Natural Language :: English',
         'Operating System :: OS Independent',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.2',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3.12',
