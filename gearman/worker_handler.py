@@ -123,13 +123,13 @@ class GearmanWorkerCommandHandler(GearmanCommandHandler):
 
         AWAITING_JOB -> EXECUTE_JOB -> SLEEP :: Always transition once we're given a job
         """
-        assert task.decode('utf-8') in self._handler_abilities, '%s not found in %r' % (task, self._handler_abilities)
+        assert task in self._handler_abilities, '%s not found in %r' % (task, self._handler_abilities)
 
         # After this point, we know this connection handler is holding onto the job lock so we don't need to acquire it again
         if not self.connection_manager.check_job_lock(self):
             raise InvalidWorkerState("Received a job when we weren't expecting one")
 
-        gearman_job = self.connection_manager.create_job(self, job_handle, task.decode('utf-8'), unique, self.decode_data(data))
+        gearman_job = self.connection_manager.create_job(self, job_handle, task, unique, self.decode_data(data))
 
         # Create a new job
         self.connection_manager.on_job_execute(gearman_job)
