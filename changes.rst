@@ -2,6 +2,19 @@
 Changelog
 =========
 
+This is a record of all releases of pygearman.
+
+------------------
+0.2.2 - 2025-07-04
+------------------
+
+This release fixes Python 3.2+ compatibility (fromstring has been renamed to frombytes).
+
+
+=========
+Changelog
+=========
+
 This is a record of all releases of python-gearman3.
 
 ------------------

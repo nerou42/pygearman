@@ -13,14 +13,14 @@ This fork fixes the compatibility to Python 3.2+ and limits the task names to UT
 Installation
 ************
 
-This library is published on PyPI as `gearman3 <https://pypi.org/project/gearman3/>`_.
+This library is published on PyPI as `pygearman <https://pypi.org/project/pygearman/>`_.
 You can install it using pip:
 
 .. code-block::
 
-   pip install gearman3
+   pip install pygearman
 
-The library is tested with Python 2.7, 3.5 and 3.6.
+The library is tested with Python 3.6 and 3.12.
 
 
 Usage
@@ -46,7 +46,7 @@ See `<developers.rst>`_ for more notes on development, and in particular instruc
 Further links
 *************
 
-* Changelog for gearman3: see `<changes.rst>`_.
+* Changelog for pygearman: see `<changes.rst>`_.
 
 * 2.x source: `<https://github.com/Yelp/python-gearman/>`_
 * 2.x documentation: `<https://packages.python.org/gearman/>`_
