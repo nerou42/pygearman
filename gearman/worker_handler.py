@@ -123,6 +123,7 @@ class GearmanWorkerCommandHandler(GearmanCommandHandler):
 
         AWAITING_JOB -> EXECUTE_JOB -> SLEEP :: Always transition once we're given a job
         """
+        task = task.decode('utf-8')
         assert task in self._handler_abilities, '%s not found in %r' % (task, self._handler_abilities)
 
         # After this point, we know this connection handler is holding onto the job lock so we don't need to acquire it again
