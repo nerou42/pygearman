@@ -149,12 +149,12 @@ class GearmanClientCommandHandler(GearmanCommandHandler):
         # If we received a STATUS_RES update about this request, update our known status
         current_request = self.handle_to_request_map[job_handle]
 
-        job_known = bool(known == '1')
+        job_known = bool(known == b'1')
         # Make our status response Python friendly
         current_request.status = {
             'handle': job_handle,
             'known': job_known,
-            'running': bool(running == '1'),
+            'running': bool(running == b'1'),
             'numerator': int(numerator),
             'denominator': int(denominator),
             'time_received': time.time()
