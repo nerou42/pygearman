@@ -33,10 +33,7 @@ There are docs at `<https://pythonhosted.org/gearman/>`_.
 Development
 ***********
 
-I created this fork so we'd have a Python 3-compatible version of Gearman to use in `Archivematica <https://github.com/artefactual/archivematica>`_.
-
-I'll accept bugfixes for improving compatibility with Python 3, but I'm unlikely to accept new features or changes to the library's behaviour.
-If you want to make big changes, I suggest creating your own fork.
+wellcomecollection created their fork so they'd have a Python 3-compatible version of Gearman to use in `Archivematica <https://github.com/artefactual/archivematica>`_.
 
 New patches should come with tests and a release note.
 

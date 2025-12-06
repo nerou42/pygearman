@@ -5,6 +5,12 @@ Changelog
 This is a record of all releases of pygearman.
 
 ------------------
+0.2.3 - 2025-12-04
+------------------
+
+Fix various typing bugs.
+
+------------------
 0.2.2 - 2025-07-04
 ------------------
 
