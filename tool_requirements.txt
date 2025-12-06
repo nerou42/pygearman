@@ -65,7 +65,7 @@ secretstorage==3.3.3
     # via keyring
 twine==6.1.0
     # via -r tool_requirements.in
-urllib3==2.5.0
+urllib3==2.6.0
     # via
     #   requests
     #   twine
