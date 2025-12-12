@@ -426,7 +426,7 @@ class WorkerCommandHandlerStateMachineTest(_GearmanAbstractWorkerTest):
             self.command_handler
         ].popleft()
         assert current_job.handle == fake_job["job_handle"]
-        assert current_job.task == fake_job["task"]
+        assert current_job.task == fake_job["task"].decode("utf-8")
         assert current_job.unique == fake_job["unique"]
         assert current_job.data == fake_job["data"]
 

@@ -158,7 +158,7 @@ class GearmanWorkerCommandHandler(GearmanCommandHandler):
 
         AWAITING_JOB -> EXECUTE_JOB -> SLEEP :: Always transition once we're given a job
         """
-        assert task.decode("utf-8") in self._handler_abilities, "%s not found in %r" % (
+        assert task in self._handler_abilities, "%s not found in %r" % (
             task,
             self._handler_abilities,
         )
