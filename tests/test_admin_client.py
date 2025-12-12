@@ -16,7 +16,12 @@ from gearman.protocol import (
     GEARMAN_SERVER_COMMAND_SHOW_JOBS,
     GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS,
     GEARMAN_COMMAND_TEXT_COMMAND,
-    GEARMAN_SERVER_COMMAND_STATUS, GEARMAN_SERVER_COMMAND_VERSION, GEARMAN_SERVER_COMMAND_WORKERS, GEARMAN_SERVER_COMMAND_MAXQUEUE, GEARMAN_SERVER_COMMAND_SHUTDOWN)
+    GEARMAN_SERVER_COMMAND_STATUS,
+    GEARMAN_SERVER_COMMAND_VERSION,
+    GEARMAN_SERVER_COMMAND_WORKERS,
+    GEARMAN_SERVER_COMMAND_MAXQUEUE,
+    GEARMAN_SERVER_COMMAND_SHUTDOWN,
+)
 
 from tests._core_testing import _GearmanAbstractTest, MockGearmanConnectionManager
 
@@ -42,7 +47,9 @@ class _StateMachineTest(_GearmanAbstractTest):
         assert self.command_handler._sent_commands[0] == expected_command
 
     def recv_server_response(self, response_line):
-        self.command_handler.recv_command(GEARMAN_COMMAND_TEXT_COMMAND, raw_text=response_line)
+        self.command_handler.recv_command(
+            GEARMAN_COMMAND_TEXT_COMMAND, raw_text=response_line
+        )
 
     def pop_response(self, expected_command):
         server_cmd, server_response = self.command_handler.pop_response()
@@ -53,6 +60,7 @@ class _StateMachineTest(_GearmanAbstractTest):
 
 class CommandHandlerStateMachineTest(_StateMachineTest):
     """Test the public interface a GearmanWorker may need to call in order to update state on a GearmanWorkerCommandHandler"""
+
     command_handler_class = GearmanAdminClientCommandHandler
 
     def test_send_illegal_server_commands(self):
@@ -77,9 +85,9 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
 
         # Test malformed server status
         with pytest.raises(ProtocolError):
-            self.recv_server_response('\t'.join(['12', 'IP-A', 'CLIENT-A']))
+            self.recv_server_response("\t".join(["12", "IP-A", "CLIENT-A"]))
 
-        self.recv_server_response('.')
+        self.recv_server_response(".")
 
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
         assert server_response == ()
@@ -95,26 +103,26 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
 
     def test_multiple_status(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
-        self.recv_server_response('\t'.join(['test_function', '1', '5', '17']))
-        self.recv_server_response('\t'.join(['another_function', '2', '4', '23']))
-        self.recv_server_response('.')
+        self.recv_server_response("\t".join(["test_function", "1", "5", "17"]))
+        self.recv_server_response("\t".join(["another_function", "2", "4", "23"]))
+        self.recv_server_response(".")
 
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
         assert len(server_response) == 2
 
         test_response, another_response = server_response
-        assert test_response['task'] == 'test_function'
-        assert test_response['queued'] == 1
-        assert test_response['running'] == 5
-        assert test_response['workers'] == 17
+        assert test_response["task"] == "test_function"
+        assert test_response["queued"] == 1
+        assert test_response["running"] == 5
+        assert test_response["workers"] == 17
 
-        assert another_response['task'] == 'another_function'
-        assert another_response['queued'] == 2
-        assert another_response['running'] == 4
-        assert another_response['workers'] == 23
+        assert another_response["task"] == "another_function"
+        assert another_response["queued"] == 2
+        assert another_response["running"] == 4
+        assert another_response["workers"] == 23
 
     def test_version(self):
-        expected_version = '0.12345'
+        expected_version = "0.12345"
 
         self.send_server_command(GEARMAN_SERVER_COMMAND_VERSION)
         self.recv_server_response(expected_version)
@@ -131,48 +139,52 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
 
         # Test malformed responses
         with pytest.raises(ProtocolError):
-            self.recv_server_response(' '.join(['12', 'IP-A', 'CLIENT-A']))
+            self.recv_server_response(" ".join(["12", "IP-A", "CLIENT-A"]))
 
         with pytest.raises(ProtocolError):
-            self.recv_server_response(' '.join(['12', 'IP-A', 'CLIENT-A', 'NOT:']))
+            self.recv_server_response(" ".join(["12", "IP-A", "CLIENT-A", "NOT:"]))
 
-        self.recv_server_response('.')
+        self.recv_server_response(".")
 
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_WORKERS)
         assert server_response == ()
 
     def test_multiple_workers(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_WORKERS)
-        self.recv_server_response(' '.join(['12', 'IP-A', 'CLIENT-A', ':', 'function-A', 'function-B']))
-        self.recv_server_response(' '.join(['13', 'IP-B', 'CLIENT-B', ':', 'function-C']))
-        self.recv_server_response('.')
+        self.recv_server_response(
+            " ".join(["12", "IP-A", "CLIENT-A", ":", "function-A", "function-B"])
+        )
+        self.recv_server_response(
+            " ".join(["13", "IP-B", "CLIENT-B", ":", "function-C"])
+        )
+        self.recv_server_response(".")
 
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_WORKERS)
         assert len(server_response) == 2
 
         test_response, another_response = server_response
-        assert test_response['file_descriptor'] == '12'
-        assert test_response['ip'] == 'IP-A'
-        assert test_response['client_id'] == 'CLIENT-A'
-        assert test_response['tasks'] == ('function-A', 'function-B')
+        assert test_response["file_descriptor"] == "12"
+        assert test_response["ip"] == "IP-A"
+        assert test_response["client_id"] == "CLIENT-A"
+        assert test_response["tasks"] == ("function-A", "function-B")
 
-        assert another_response['file_descriptor'] == '13'
-        assert another_response['ip'] == 'IP-B'
-        assert another_response['client_id'] == 'CLIENT-B'
-        assert another_response['tasks'] == ('function-C', )
+        assert another_response["file_descriptor"] == "13"
+        assert another_response["ip"] == "IP-B"
+        assert another_response["client_id"] == "CLIENT-B"
+        assert another_response["tasks"] == ("function-C",)
 
     def test_maxqueue(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_MAXQUEUE)
         with pytest.raises(ProtocolError):
-            self.recv_server_response('NOT OK')
+            self.recv_server_response("NOT OK")
 
         # Pop prematurely
         with pytest.raises(InvalidAdminClientState):
             self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
 
-        self.recv_server_response('OK')
+        self.recv_server_response("OK")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
-        assert server_response == 'OK'
+        assert server_response == "OK"
 
     def test_shutdown(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHUTDOWN)
@@ -214,7 +226,7 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         with pytest.raises(InvalidAdminClientState):
             self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
-        self.recv_server_response('.')
+        self.recv_server_response(".")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
         assert server_response == ()
 
@@ -222,13 +234,13 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
         with pytest.raises(ProtocolError, match="Received 3 tokens, expected 4 tokens"):
-            self.recv_server_response('1\t2\t3')
+            self.recv_server_response("1\t2\t3")
 
     def test_show_jobs(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
-        self.recv_server_response('foo\t1\t2\t3')
-        self.recv_server_response('bar\t4\t5\t6')
+        self.recv_server_response("foo\t1\t2\t3")
+        self.recv_server_response("bar\t4\t5\t6")
 
         # Pop prematurely
         with pytest.raises(InvalidAdminClientState):
@@ -244,7 +256,7 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
     def test_show_unique_jobs_empty(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
 
-        self.recv_server_response('.')
+        self.recv_server_response(".")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
         assert server_response == ()
 
@@ -252,13 +264,13 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
 
         with pytest.raises(ProtocolError, match="Received 3 tokens, expected 1 tokens"):
-            self.recv_server_response('1\t2\t3')
+            self.recv_server_response("1\t2\t3")
 
     def test_show_unique_jobs(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
 
-        self.recv_server_response('foo')
-        self.recv_server_response('bar')
+        self.recv_server_response("foo")
+        self.recv_server_response("bar")
 
         self.recv_server_response(".")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
@@ -268,8 +280,10 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         )
 
     def test_recv_server_response_without_command(self):
-        with pytest.raises(InvalidAdminClientState, match='Received an unexpected server response'):
-            self.recv_server_response(b'123')
+        with pytest.raises(
+            InvalidAdminClientState, match="Received an unexpected server response"
+        ):
+            self.recv_server_response(b"123")
 
 
 def _assert_gearman_connection_equal(conn1, conn2):
@@ -291,36 +305,42 @@ def _assert_gearman_connection_equal(conn1, conn2):
 
 class TestGearmanAdminClient(object):
 
-    @pytest.mark.parametrize('host_config', [
-        # As a string specifying a port
-        "localhost:4730",
-
-        # If a port isn't specified, we use the default port
-        "localhost",
-
-        # As a tuple (with and without int argument)
-        ("localhost", "4730"),
-        ("localhost", 4730),
-    ])
+    @pytest.mark.parametrize(
+        "host_config",
+        [
+            # As a string specifying a port
+            "localhost:4730",
+            # If a port isn't specified, we use the default port
+            "localhost",
+            # As a tuple (with and without int argument)
+            ("localhost", "4730"),
+            ("localhost", 4730),
+        ],
+    )
     def test_creating_with_host_port_pair_str(self, host_config):
         client = GearmanAdminClient(host_list=[host_config])
         assert len(client.connection_list) == 1
 
         _assert_gearman_connection_equal(
             conn1=GearmanConnection(host="localhost", port=4730),
-            conn2=client.connection_list[0]
+            conn2=client.connection_list[0],
         )
 
     def test_multiple_hosts_is_error(self):
         with pytest.raises(GearmanError, match="Only pass a single host"):
-            GearmanAdminClient(host_list=[
-                "localhost:1234",
-                "example.org:5678",
-            ])
+            GearmanAdminClient(
+                host_list=[
+                    "localhost:1234",
+                    "example.org:5678",
+                ]
+            )
 
-    @given(sets(
-        sampled_from(['host', 'port', 'keyfile', 'certfile', 'ca_certs']),
-        min_size=1))
+    @given(
+        sets(
+            sampled_from(["host", "port", "keyfile", "certfile", "ca_certs"]),
+            min_size=1,
+        )
+    )
     def test_passing_incomplete_ssl_data_is_error(self, keys_to_delete):
         host_config = {
             "host": "localhost",
@@ -336,7 +356,7 @@ class TestGearmanAdminClient(object):
         with pytest.raises(GearmanError, match="Incomplete SSL connection definition"):
             GearmanAdminClient(host_list=[host_config])
 
-    @pytest.mark.parametrize('bad_config', [None, 1, object])
+    @pytest.mark.parametrize("bad_config", [None, 1, object])
     def test_passing_bad_host_config_is_error(self, bad_config):
         with pytest.raises(GearmanError, match="Expected str, tuple or dict"):
             GearmanAdminClient(host_list=[bad_config])
@@ -354,8 +374,14 @@ class TestGearmanAdminClient(object):
         assert len(client.connection_list) == 1
 
         _assert_gearman_connection_equal(
-            conn1=GearmanConnection(host="localhost", port=5000, keyfile="key.txt", certfile="cert.txt", ca_certs="ca_certs.txt"),
-            conn2=client.connection_list[0]
+            conn1=GearmanConnection(
+                host="localhost",
+                port=5000,
+                keyfile="key.txt",
+                certfile="cert.txt",
+                ca_certs="ca_certs.txt",
+            ),
+            conn2=client.connection_list[0],
         )
 
 
@@ -380,10 +406,11 @@ class TestBrokenCommandHandlerStateMachine(_StateMachineTest):
     """
     This exists to hit a line that isn't reachable in normal operation.
     """
+
     command_handler_class = BrokenCommandHandler
 
     def test_show_jobs_empty(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
         with pytest.raises(ValueError, match="Could not handle command: 'show_jobs'"):
-            self.recv_server_response('.')
+            self.recv_server_response(".")

@@ -126,17 +126,14 @@ class _Select(object):
             # is activity
             timeout = None
 
-        connections = (self.read | self.write | self.error)
+        connections = self.read | self.write | self.error
 
         success = False
         while not success and connections:
             connections -= errors
             try:
                 r, w, e = gearman.util.select(
-                    self.read,
-                    self.write,
-                    self.error,
-                    timeout
+                    self.read, self.write, self.error, timeout
                 )
                 readable = set(r)
                 writable = set(w)

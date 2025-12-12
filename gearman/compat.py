@@ -30,4 +30,4 @@ else:
         return d.itervalues()
 
     def to_hex(binary_str):
-        return binary_str.encode('hex')
+        return binary_str.encode("hex")

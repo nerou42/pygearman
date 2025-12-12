@@ -11,6 +11,7 @@ from gearman.constants import DEFAULT_GEARMAN_PORT
 
 class Stopwatch(object):
     """Timer class that keeps track of time remaining"""
+
     def __init__(self, time_remaining):
         if time_remaining is not None:
             self.stop_time = time.time() + time_remaining
@@ -40,8 +41,8 @@ def disambiguate_server_parameter(hostport_tuple):
     """Takes either a tuple of (address, port) or a string of 'address:port' and disambiguates them for us"""
     if type(hostport_tuple) is tuple:
         gearman_host, gearman_port = hostport_tuple
-    elif ':' in hostport_tuple:
-        gearman_host, gearman_possible_port = hostport_tuple.split(':')
+    elif ":" in hostport_tuple:
+        gearman_host, gearman_possible_port = hostport_tuple.split(":")
         gearman_port = gearman_possible_port
     else:
         gearman_host = hostport_tuple

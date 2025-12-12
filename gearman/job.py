@@ -1,11 +1,18 @@
 # -*- encoding: utf-8
 
 import collections
-from gearman.constants import PRIORITY_NONE, JOB_UNKNOWN, JOB_CREATED, JOB_FAILED, JOB_COMPLETE
+from gearman.constants import (
+    PRIORITY_NONE,
+    JOB_UNKNOWN,
+    JOB_CREATED,
+    JOB_FAILED,
+    JOB_COMPLETE,
+)
 
 
 class GearmanJob(object):
     """Represents the basics of a job... used in GearmanClient / GearmanWorker to represent job states"""
+
     def __init__(self, connection, handle, task, unique, data):
         self.connection = connection
         self.handle = handle
@@ -15,22 +22,31 @@ class GearmanJob(object):
         self.data = data
 
     def __repr__(self):
-        return '%s(connection=%r, handle=%r, task=%r, unique=%r, data=%r)' % (
+        return "%s(connection=%r, handle=%r, task=%r, unique=%r, data=%r)" % (
             type(self).__name__,
             self.connection,
             self.handle,
             self.task,
             self.unique,
-            self.data
+            self.data,
         )
 
     def to_dict(self):
-        return dict(task=self.task, job_handle=self.handle, unique=self.unique, data=self.data)
+        return dict(
+            task=self.task, job_handle=self.handle, unique=self.unique, data=self.data
+        )
 
 
 class GearmanJobRequest(object):
     """Represents a job request... used in GearmanClient to represent job states"""
-    def __init__(self, gearman_job, initial_priority=PRIORITY_NONE, background=False, max_attempts=1):
+
+    def __init__(
+        self,
+        gearman_job,
+        initial_priority=PRIORITY_NONE,
+        background=False,
+        max_attempts=1,
+    ):
         self.gearman_job = gearman_job
 
         self.priority = initial_priority
@@ -42,12 +58,15 @@ class GearmanJobRequest(object):
         self.initialize_request()
 
     def __repr__(self):
-        return '%s(gearman_job=%r, initial_priority=%r, background=%r, max_attempts=%r)' % (
-            type(self).__name__,
-            self.gearman_job,
-            self.priority,
-            self.background,
-            self.max_connection_attempts
+        return (
+            "%s(gearman_job=%r, initial_priority=%r, background=%r, max_attempts=%r)"
+            % (
+                type(self).__name__,
+                self.gearman_job,
+                self.priority,
+                self.background,
+                self.max_connection_attempts,
+            )
         )
 
     def initialize_request(self):
@@ -79,7 +98,9 @@ class GearmanJobRequest(object):
     @property
     def complete(self):
         background_complete = bool(self.background and self.state in (JOB_CREATED))
-        foreground_complete = bool(not self.background and self.state in (JOB_FAILED, JOB_COMPLETE))
+        foreground_complete = bool(
+            not self.background and self.state in (JOB_FAILED, JOB_COMPLETE)
+        )
 
         actually_complete = background_complete or foreground_complete
         return actually_complete

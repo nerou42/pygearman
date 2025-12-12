@@ -10,12 +10,20 @@ from gearman.errors import (
     ConnectionError,
     GearmanError,
     InvalidAdminClientState,
-    ServerUnavailable
+    ServerUnavailable,
 )
-from gearman.protocol import GEARMAN_COMMAND_ECHO_REQ, \
-    GEARMAN_SERVER_COMMAND_STATUS, GEARMAN_SERVER_COMMAND_VERSION, GEARMAN_SERVER_COMMAND_WORKERS, \
-    GEARMAN_SERVER_COMMAND_MAXQUEUE, GEARMAN_SERVER_COMMAND_SHUTDOWN, GEARMAN_SERVER_COMMAND_GETPID, \
-    GEARMAN_SERVER_COMMAND_CANCEL_JOB, GEARMAN_SERVER_COMMAND_SHOW_JOBS, GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS
+from gearman.protocol import (
+    GEARMAN_COMMAND_ECHO_REQ,
+    GEARMAN_SERVER_COMMAND_STATUS,
+    GEARMAN_SERVER_COMMAND_VERSION,
+    GEARMAN_SERVER_COMMAND_WORKERS,
+    GEARMAN_SERVER_COMMAND_MAXQUEUE,
+    GEARMAN_SERVER_COMMAND_SHUTDOWN,
+    GEARMAN_SERVER_COMMAND_GETPID,
+    GEARMAN_SERVER_COMMAND_CANCEL_JOB,
+    GEARMAN_SERVER_COMMAND_SHOW_JOBS,
+    GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS,
+)
 from gearman.util import unlist
 
 
@@ -31,6 +39,7 @@ class GearmanAdminClient(GearmanConnectionManager):
     http://gearman.org/index.php?id=protocol
     See section 'Administrative Protocol'
     """
+
     command_handler_class = GearmanAdminClientCommandHandler
 
     def __init__(self, host_list=None, poll_timeout=DEFAULT_ADMIN_CLIENT_TIMEOUT):
@@ -43,8 +52,8 @@ class GearmanAdminClient(GearmanConnectionManager):
             self.current_connection = unlist(self.connection_list)
         except ValueError:
             raise GearmanError(
-                "Only pass a single host to the constructor of %s" %
-                type(self).__name__)
+                "Only pass a single host to the constructor of %s" % type(self).__name__
+            )
 
         self.current_handler = None
 
@@ -52,7 +61,9 @@ class GearmanAdminClient(GearmanConnectionManager):
         try:
             self.establish_connection(self.current_connection)
         except ConnectionError:
-            raise ServerUnavailable('Found no valid connections in list: %r' % self.connection_list)
+            raise ServerUnavailable(
+                "Found no valid connections in list: %r" % self.connection_list
+            )
 
         self.current_handler = self.connection_to_handler_map[self.current_connection]
 
@@ -64,7 +75,10 @@ class GearmanAdminClient(GearmanConnectionManager):
         self.current_handler.send_echo_request(ECHO_STRING)
         server_response = self.wait_until_server_responds(GEARMAN_COMMAND_ECHO_REQ)
         if server_response != ECHO_STRING:
-            raise InvalidAdminClientState("Echo string mismatch: got %s, expected %s" % (server_response, ECHO_STRING))
+            raise InvalidAdminClientState(
+                "Echo string mismatch: got %s, expected %s"
+                % (server_response, ECHO_STRING)
+            )
 
         elapsed_time = time.time() - start_time
         return elapsed_time
@@ -73,14 +87,16 @@ class GearmanAdminClient(GearmanConnectionManager):
         """Sends a request to change the maximum queue size for a given task"""
 
         self.establish_admin_connection()
-        self.current_handler.send_text_command('%s %s %s' % (GEARMAN_SERVER_COMMAND_MAXQUEUE, task, max_size))
+        self.current_handler.send_text_command(
+            "%s %s %s" % (GEARMAN_SERVER_COMMAND_MAXQUEUE, task, max_size)
+        )
         return self.wait_until_server_responds(GEARMAN_SERVER_COMMAND_MAXQUEUE)
 
     def send_shutdown(self, graceful=True):
         """Sends a request to shutdown the connected gearman server"""
         actual_command = GEARMAN_SERVER_COMMAND_SHUTDOWN
         if graceful:
-            actual_command += ' graceful'
+            actual_command += " graceful"
 
         self.establish_admin_connection()
         self.current_handler.send_text_command(actual_command)
@@ -108,15 +124,24 @@ class GearmanAdminClient(GearmanConnectionManager):
         current_handler = self.current_handler
 
         def continue_while_no_response(any_activity):
-            return (not current_handler.response_ready)
+            return not current_handler.response_ready
 
-        self.poll_connections_until_stopped([self.current_connection], continue_while_no_response, timeout=self.poll_timeout)
+        self.poll_connections_until_stopped(
+            [self.current_connection],
+            continue_while_no_response,
+            timeout=self.poll_timeout,
+        )
         if not self.current_handler.response_ready:
-            raise InvalidAdminClientState('Admin client timed out after %f second(s)' % self.poll_timeout)
+            raise InvalidAdminClientState(
+                "Admin client timed out after %f second(s)" % self.poll_timeout
+            )
 
         cmd_type, cmd_resp = self.current_handler.pop_response()
         if cmd_type != expected_type:
-            raise InvalidAdminClientState('Received an unexpected response... got command %r, expecting command %r' % (cmd_type, expected_type))
+            raise InvalidAdminClientState(
+                "Received an unexpected response... got command %r, expecting command %r"
+                % (cmd_type, expected_type)
+            )
 
         return cmd_resp
 
@@ -129,7 +154,9 @@ class GearmanAdminClient(GearmanConnectionManager):
     def cancel_job(self, handle):
         """Cancels a job"""
         self.establish_admin_connection()
-        self.current_handler.send_text_command(GEARMAN_SERVER_COMMAND_CANCEL_JOB + " " + handle)
+        self.current_handler.send_text_command(
+            GEARMAN_SERVER_COMMAND_CANCEL_JOB + " " + handle
+        )
         return self.wait_until_server_responds(GEARMAN_SERVER_COMMAND_CANCEL_JOB)
 
     def get_jobs(self):

@@ -14,6 +14,7 @@ class GearmanWorker(GearmanConnectionManager):
     """
     GearmanWorker :: Interface to accept jobs from a Gearman server
     """
+
     command_handler_class = GearmanWorkerCommandHandler
 
     def __init__(self, host_list=None):
@@ -28,8 +29,8 @@ class GearmanWorker(GearmanConnectionManager):
         self._update_initial_state()
 
     def _update_initial_state(self):
-        self.handler_initial_state['abilities'] = self.worker_abilities.keys()
-        self.handler_initial_state['client_id'] = self.worker_client_id
+        self.handler_initial_state["abilities"] = self.worker_abilities.keys()
+        self.handler_initial_state["client_id"] = self.worker_client_id
 
     ########################################################
     ##### Public methods for general GearmanWorker use #####
@@ -44,7 +45,7 @@ class GearmanWorker(GearmanConnectionManager):
         self._update_initial_state()
 
         for command_handler in self.handler_to_connection_map:
-            command_handler.set_abilities(self.handler_initial_state['abilities'])
+            command_handler.set_abilities(self.handler_initial_state["abilities"])
 
         return task
 
@@ -54,7 +55,7 @@ class GearmanWorker(GearmanConnectionManager):
         self._update_initial_state()
 
         for command_handler in self.handler_to_connection_map:
-            command_handler.set_abilities(self.handler_initial_state['abilities'])
+            command_handler.set_abilities(self.handler_initial_state["abilities"])
 
         return task
 
@@ -64,7 +65,7 @@ class GearmanWorker(GearmanConnectionManager):
         self._update_initial_state()
 
         for command_handler in self.handler_to_connection_map:
-            command_handler.set_client_id(self.handler_initial_state['client_id'])
+            command_handler.set_client_id(self.handler_initial_state["client_id"])
 
         return client_id
 
@@ -94,7 +95,11 @@ class GearmanWorker(GearmanConnectionManager):
         # Shuffle our connections after the poll timeout
         while continue_working:
             worker_connections = self.establish_worker_connections()
-            continue_working = self.poll_connections_until_stopped(worker_connections, continue_while_connections_alive, timeout=poll_timeout)
+            continue_working = self.poll_connections_until_stopped(
+                worker_connections,
+                continue_while_connections_alive,
+                timeout=poll_timeout,
+            )
 
         # If we were kicked out of the worker loop, we should shutdown all our connections
         for current_connection in worker_connections:
@@ -152,17 +157,25 @@ class GearmanWorker(GearmanConnectionManager):
         return self.connection_to_handler_map[current_job.connection]
 
     def wait_until_updates_sent(self, multiple_gearman_jobs, poll_timeout=None):
-        connection_set = set([current_job.connection for current_job in multiple_gearman_jobs])
+        connection_set = set(
+            [current_job.connection for current_job in multiple_gearman_jobs]
+        )
 
         def continue_while_updates_pending(any_activity):
-            return any(current_connection.writable() for current_connection in connection_set)
+            return any(
+                current_connection.writable() for current_connection in connection_set
+            )
 
-        self.poll_connections_until_stopped(connection_set, continue_while_updates_pending, timeout=poll_timeout)
+        self.poll_connections_until_stopped(
+            connection_set, continue_while_updates_pending, timeout=poll_timeout
+        )
 
     def send_job_status(self, current_job, numerator, denominator, poll_timeout=None):
         """Send a Gearman JOB_STATUS update for an inflight job"""
         current_handler = self._get_handler_for_job(current_job)
-        current_handler.send_job_status(current_job, numerator=numerator, denominator=denominator)
+        current_handler.send_job_status(
+            current_job, numerator=numerator, denominator=denominator
+        )
 
         self.wait_until_updates_sent([current_job], poll_timeout=poll_timeout)
 
@@ -235,7 +248,9 @@ class GearmanWorker(GearmanConnectionManager):
             return False
 
         failed_lock = bool(lock and self.command_handler_holding_job_lock is not None)
-        failed_unlock = bool(not lock and self.command_handler_holding_job_lock != command_handler)
+        failed_unlock = bool(
+            not lock and self.command_handler_holding_job_lock != command_handler
+        )
 
         # If we've already been locked, we should say the lock failed
         # If we're attempting to unlock something when we don't have a lock, we're in a bad state

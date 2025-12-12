@@ -3,15 +3,9 @@ import logging
 
 from gearman.command_handler import GearmanCommandHandler
 from gearman.errors import ProtocolError, InvalidAdminClientState
-from gearman.protocol import GEARMAN_COMMAND_ECHO_REQ, GEARMAN_COMMAND_TEXT_COMMAND, \
-    GEARMAN_SERVER_COMMAND_STATUS, GEARMAN_SERVER_COMMAND_VERSION, \
-    GEARMAN_SERVER_COMMAND_WORKERS, GEARMAN_SERVER_COMMAND_MAXQUEUE, GEARMAN_SERVER_COMMAND_SHUTDOWN, \
-    GEARMAN_SERVER_COMMAND_GETPID, GEARMAN_SERVER_COMMAND_SHOW_JOBS, GEARMAN_SERVER_COMMAND_CANCEL_JOB, \
-    GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS
-
-gearman_logger = logging.getLogger(__name__)
-
-EXPECTED_GEARMAN_SERVER_COMMANDS = set([
+from gearman.protocol import (
+    GEARMAN_COMMAND_ECHO_REQ,
+    GEARMAN_COMMAND_TEXT_COMMAND,
     GEARMAN_SERVER_COMMAND_STATUS,
     GEARMAN_SERVER_COMMAND_VERSION,
     GEARMAN_SERVER_COMMAND_WORKERS,
@@ -21,18 +15,37 @@ EXPECTED_GEARMAN_SERVER_COMMANDS = set([
     GEARMAN_SERVER_COMMAND_SHOW_JOBS,
     GEARMAN_SERVER_COMMAND_CANCEL_JOB,
     GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS,
-])
+)
+
+gearman_logger = logging.getLogger(__name__)
+
+EXPECTED_GEARMAN_SERVER_COMMANDS = set(
+    [
+        GEARMAN_SERVER_COMMAND_STATUS,
+        GEARMAN_SERVER_COMMAND_VERSION,
+        GEARMAN_SERVER_COMMAND_WORKERS,
+        GEARMAN_SERVER_COMMAND_MAXQUEUE,
+        GEARMAN_SERVER_COMMAND_SHUTDOWN,
+        GEARMAN_SERVER_COMMAND_GETPID,
+        GEARMAN_SERVER_COMMAND_SHOW_JOBS,
+        GEARMAN_SERVER_COMMAND_CANCEL_JOB,
+        GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS,
+    ]
+)
 
 
 class GearmanAdminClientCommandHandler(GearmanCommandHandler):
     """Special GEARMAN_COMMAND_TEXT_COMMAND command handler that'll parse text responses from the server"""
+
     STATUS_FIELDS = 4
     WORKERS_FIELDS = 4
     JOB_FIELDS = 4
     UNIQUE_JOB_FIELDS = 1
 
     def __init__(self, connection_manager=None):
-        super(GearmanAdminClientCommandHandler, self).__init__(connection_manager=connection_manager)
+        super(GearmanAdminClientCommandHandler, self).__init__(
+            connection_manager=connection_manager
+        )
         self._sent_commands = collections.deque()
         self._recv_responses = collections.deque()
 
@@ -49,7 +62,9 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
 
     def pop_response(self):
         if not self._sent_commands or not self._recv_responses:
-            raise InvalidAdminClientState('Attempted to pop a response for a command that is not ready')
+            raise InvalidAdminClientState(
+                "Attempted to pop a response for a command that is not ready"
+            )
 
         sent_command = self._sent_commands.popleft()
         recv_response = self._recv_responses.popleft()
@@ -64,11 +79,13 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
                 break
 
         if not expected_server_command:
-            raise ProtocolError('Attempted to send an unknown server command: %r' % command_line)
+            raise ProtocolError(
+                "Attempted to send an unknown server command: %r" % command_line
+            )
 
         self._sent_commands.append(expected_server_command)
 
-        output_text = '%s\n' % command_line
+        output_text = "%s\n" % command_line
         self.send_command(GEARMAN_COMMAND_TEXT_COMMAND, raw_text=output_text)
 
     def send_echo_request(self, echo_string):
@@ -88,17 +105,19 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
     def recv_text_command(self, raw_text):
         """Catch GEARMAN_COMMAND_TEXT_COMMAND's and forward them onto their respective recv_server_* callbacks"""
         if not self._sent_commands:
-            raise InvalidAdminClientState('Received an unexpected server response')
+            raise InvalidAdminClientState("Received an unexpected server response")
 
         # Peek at the first command
         cmd = self._sent_commands[0]
         cmd_type = cmd.replace(" ", "_")
-        recv_server_command_function_name = 'recv_server_%s' % cmd_type
+        recv_server_command_function_name = "recv_server_%s" % cmd_type
 
         cmd_callback = getattr(self, recv_server_command_function_name)
         if not cmd_callback:
-            gearman_logger.error('Could not handle command: %r - %r' % (cmd_type, raw_text))
-            raise ValueError('Could not handle command: %r - %r' % (cmd_type, raw_text))
+            gearman_logger.error(
+                "Could not handle command: %r - %r" % (cmd_type, raw_text)
+            )
+            raise ValueError("Could not handle command: %r - %r" % (cmd_type, raw_text))
 
         # This must match the parameter names as defined in the command handler
         completed_work = cmd_callback(raw_text)
@@ -108,25 +127,28 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
         """Slowly assemble a server status message line by line"""
         # If we received a '.', we've finished parsing this status message
         # Pack up our output and reset our response queue
-        if raw_text == '.':
+        if raw_text == ".":
             output_response = tuple(self._status_response)
             self._recv_responses.append(output_response)
             self._status_response = []
             return False
 
         # If we didn't get a final response, split our line and interpret all the data
-        split_tokens = raw_text.split('\t')
+        split_tokens = raw_text.split("\t")
         if len(split_tokens) != self.STATUS_FIELDS:
-            raise ProtocolError('Received %d tokens, expected %d tokens: %r' % (len(split_tokens), self.STATUS_FIELDS, split_tokens))
+            raise ProtocolError(
+                "Received %d tokens, expected %d tokens: %r"
+                % (len(split_tokens), self.STATUS_FIELDS, split_tokens)
+            )
 
         # Label our fields and make the results Python friendly
         task, queued_count, running_count, worker_count = split_tokens
 
         status_dict = {}
-        status_dict['task'] = task
-        status_dict['queued'] = int(queued_count)
-        status_dict['running'] = int(running_count)
-        status_dict['workers'] = int(worker_count)
+        status_dict["task"] = task
+        status_dict["queued"] = int(queued_count)
+        status_dict["running"] = int(running_count)
+        status_dict["workers"] = int(worker_count)
         self._status_response.append(status_dict)
         return True
 
@@ -139,31 +161,34 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
         """Slowly assemble a server workers message line by line"""
         # If we received a '.', we've finished parsing this workers message
         # Pack up our output and reset our response queue
-        if raw_text == '.':
+        if raw_text == ".":
             output_response = tuple(self._workers_response)
             self._recv_responses.append(output_response)
             self._workers_response = []
             return False
 
-        split_tokens = raw_text.split(' ')
+        split_tokens = raw_text.split(" ")
         if len(split_tokens) < self.WORKERS_FIELDS:
-            raise ProtocolError('Received %d tokens, expected >= 4 tokens: %r' % (len(split_tokens), split_tokens))
+            raise ProtocolError(
+                "Received %d tokens, expected >= 4 tokens: %r"
+                % (len(split_tokens), split_tokens)
+            )
 
-        if split_tokens[3] != ':':
-            raise ProtocolError('Malformed worker response: %r' % (split_tokens, ))
+        if split_tokens[3] != ":":
+            raise ProtocolError("Malformed worker response: %r" % (split_tokens,))
 
         # Label our fields and make the results Python friendly
         worker_dict = {}
-        worker_dict['file_descriptor'] = split_tokens[0]
-        worker_dict['ip'] = split_tokens[1]
-        worker_dict['client_id'] = split_tokens[2]
-        worker_dict['tasks'] = tuple(split_tokens[4:])
+        worker_dict["file_descriptor"] = split_tokens[0]
+        worker_dict["ip"] = split_tokens[1]
+        worker_dict["client_id"] = split_tokens[2]
+        worker_dict["tasks"] = tuple(split_tokens[4:])
         self._workers_response.append(worker_dict)
         return True
 
     def recv_server_maxqueue(self, raw_text):
         """Maxqueue response is a simple passthrough"""
-        if raw_text != 'OK':
+        if raw_text != "OK":
             raise ProtocolError("Expected 'OK', received: %s" % raw_text)
 
         self._recv_responses.append(raw_text)
@@ -183,16 +208,19 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
         """Slowly assemble a show jobs message line by line"""
         # If we received a '.', we've finished parsing this status message
         # Pack up our output and reset our response queue
-        if raw_text == '.':
+        if raw_text == ".":
             output_response = tuple(self._status_response)
             self._recv_responses.append(output_response)
             self._status_response = []
             return False
 
         # If we didn't get a final response, split our line and interpret all the data
-        split_tokens = raw_text.split('\t')
+        split_tokens = raw_text.split("\t")
         if len(split_tokens) != self.JOB_FIELDS:
-            raise ProtocolError('Received %d tokens, expected %d tokens: %r' % (len(split_tokens), self.JOB_FIELDS, split_tokens))
+            raise ProtocolError(
+                "Received %d tokens, expected %d tokens: %r"
+                % (len(split_tokens), self.JOB_FIELDS, split_tokens)
+            )
 
         # Label our fields and make the results Python friendly
         handle, queued_count, canceled_count, enabled_count = split_tokens
@@ -215,16 +243,19 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
         """Slowly assemble a server show unique jobs message line by line"""
         # If we received a '.', we've finished parsing this status message
         # Pack up our output and reset our response queue
-        if raw_text == '.':
+        if raw_text == ".":
             output_response = tuple(self._status_response)
             self._recv_responses.append(output_response)
             self._status_response = []
             return False
 
         # If we didn't get a final response, split our line and interpret all the data
-        split_tokens = raw_text.split('\t')
+        split_tokens = raw_text.split("\t")
         if len(split_tokens) != self.UNIQUE_JOB_FIELDS:
-            raise ProtocolError('Received %d tokens, expected %d tokens: %r' % (len(split_tokens), self.UNIQUE_JOB_FIELDS, split_tokens))
+            raise ProtocolError(
+                "Received %d tokens, expected %d tokens: %r"
+                % (len(split_tokens), self.UNIQUE_JOB_FIELDS, split_tokens)
+            )
 
         # Label our fields and make the results Python friendly
         unique = split_tokens

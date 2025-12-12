@@ -25,6 +25,7 @@ class DataEncoder(object):
 
 class NoopEncoder(DataEncoder):
     """Provide common object dumps for all communications over gearman"""
+
     @classmethod
     def _enforce_byte_string(cls, given_object):
         if not isinstance(given_object, compat.binary_type):
@@ -52,6 +53,7 @@ class GearmanConnectionManager(object):
 
     Automatically encodes all 'data' fields as specified in protocol.py
     """
+
     command_handler_class = None
     connection_class = GearmanConnection
 
@@ -60,7 +62,9 @@ class GearmanConnectionManager(object):
     data_encoder = NoopEncoder
 
     def __init__(self, host_list=None):
-        assert self.command_handler_class is not None, 'GearmanClientBase did not receive a command handler class'
+        assert (
+            self.command_handler_class is not None
+        ), "GearmanClientBase did not receive a command handler class"
 
         self.connection_list = []
 
@@ -70,15 +74,22 @@ class GearmanConnectionManager(object):
             if isinstance(element, (str, tuple)):
                 self.add_connection(element)
             elif isinstance(element, dict):
-                if not all(k in element for k in ('host', 'port', 'keyfile', 'certfile', 'ca_certs')):
+                if not all(
+                    k in element
+                    for k in ("host", "port", "keyfile", "certfile", "ca_certs")
+                ):
                     raise GearmanError("Incomplete SSL connection definition")
-                self.add_ssl_connection(element['host'], element['port'],
-                                        element['keyfile'], element['certfile'],
-                                        element['ca_certs'])
+                self.add_ssl_connection(
+                    element["host"],
+                    element["port"],
+                    element["keyfile"],
+                    element["certfile"],
+                    element["ca_certs"],
+                )
             else:
                 raise GearmanError(
-                    "Expected str, tuple or dict; got %r (type %s)" %
-                    (element, type(element))
+                    "Expected str, tuple or dict; got %r (type %s)"
+                    % (element, type(element))
                 )
 
         self.handler_to_connection_map = {}
@@ -87,8 +98,7 @@ class GearmanConnectionManager(object):
         self.handler_initial_state = {}
 
     def __repr__(self):
-        return '<%s connection_list=%r>' % (
-            type(self).__name__, self.connection_list)
+        return "<%s connection_list=%r>" % (type(self).__name__, self.connection_list)
 
     def shutdown(self):
         # Shutdown all our connections one by one
@@ -101,17 +111,17 @@ class GearmanConnectionManager(object):
 
     def add_ssl_connection(self, host, port, keyfile, certfile, ca_certs):
         """Add a new SSL connection to this connection manager"""
-        client_connection = self.connection_class(host=host,
-                                                  port=port,
-                                                  keyfile=keyfile,
-                                                  certfile=certfile,
-                                                  ca_certs=ca_certs)
+        client_connection = self.connection_class(
+            host=host, port=port, keyfile=keyfile, certfile=certfile, ca_certs=ca_certs
+        )
         self.connection_list.append(client_connection)
         return client_connection
 
     def add_connection(self, hostport_tuple):
         """Add a new connection to this connection manager"""
-        gearman_host, gearman_port = gearman.util.disambiguate_server_parameter(hostport_tuple)
+        gearman_host, gearman_port = gearman.util.disambiguate_server_parameter(
+            hostport_tuple
+        )
 
         client_connection = self.connection_class(host=gearman_host, port=gearman_port)
         self.connection_list.append(client_connection)
@@ -122,7 +132,9 @@ class GearmanConnectionManager(object):
         """Attempt to connect... if not previously connected, create a new CommandHandler to manage this connection's state
         !NOTE! This function can throw a ConnectionError which deriving ConnectionManagers should catch
         """
-        assert current_connection in self.connection_list, "Unknown connection - %r" % current_connection
+        assert current_connection in self.connection_list, (
+            "Unknown connection - %r" % current_connection
+        )
         if current_connection.connected:
             return current_connection
 
@@ -162,7 +174,9 @@ class GearmanConnectionManager(object):
 
         return readable, writable, errors
 
-    def handle_connection_activity(self, rd_connections, wr_connections, ex_connections):
+    def handle_connection_activity(
+        self, rd_connections, wr_connections, ex_connections
+    ):
         """Process all connection activity... executes all handle_* callbacks"""
         dead_connections = set()
         for current_connection in rd_connections:
@@ -203,7 +217,9 @@ class GearmanConnectionManager(object):
                 events |= gearman.io.WRITE
             poller.register(conn, events)
 
-    def poll_connections_until_stopped(self, submitted_connections, callback_fxn, timeout=None):
+    def poll_connections_until_stopped(
+        self, submitted_connections, callback_fxn, timeout=None
+    ):
         """Continue to poll our connections until we receive a stopping condition"""
         stopwatch = gearman.util.Stopwatch(timeout)
         submitted_connections = set(submitted_connections)
@@ -211,13 +227,13 @@ class GearmanConnectionManager(object):
 
         any_activity = False
         callback_ok = callback_fxn(any_activity)
-        connection_ok = any(current_connection.connected for current_connection in submitted_connections)
+        connection_ok = any(
+            current_connection.connected for current_connection in submitted_connections
+        )
         poller = gearman.io.get_connection_poller()
         if connection_ok:
             connection_map = {
-                conn.fileno(): conn
-                for conn in submitted_connections
-                if conn.connected
+                conn.fileno(): conn for conn in submitted_connections if conn.connected
             }
 
         while connection_ok and callback_ok:
@@ -228,10 +244,18 @@ class GearmanConnectionManager(object):
                 break
 
             # Do a single robust select and handle all connection activity
-            read_connections, write_connections, dead_connections = self.poll_connections_once(poller, connection_map, timeout=time_remaining)
+            read_connections, write_connections, dead_connections = (
+                self.poll_connections_once(
+                    poller, connection_map, timeout=time_remaining
+                )
+            )
 
             # Handle reads and writes and close all of the dead connections
-            read_connections, write_connections, dead_connections = self.handle_connection_activity(read_connections, write_connections, dead_connections)
+            read_connections, write_connections, dead_connections = (
+                self.handle_connection_activity(
+                    read_connections, write_connections, dead_connections
+                )
+            )
 
             any_activity = any([read_connections, write_connections, dead_connections])
 
@@ -239,13 +263,18 @@ class GearmanConnectionManager(object):
             submitted_connections -= dead_connections
 
             callback_ok = callback_fxn(any_activity)
-            connection_ok = any(current_connection.connected for current_connection in submitted_connections)
+            connection_ok = any(
+                current_connection.connected
+                for current_connection in submitted_connections
+            )
 
         poller.close()
 
         # We should raise here if we have no alive connections (don't go into a select polling loop with no connections)
         if not connection_ok:
-            raise ServerUnavailable('Found no valid connections in list: %r' % self.connection_list)
+            raise ServerUnavailable(
+                "Found no valid connections in list: %r" % self.connection_list
+            )
 
         return bool(connection_ok and callback_ok)
 
@@ -305,5 +334,7 @@ class GearmanConnectionManager(object):
         gearman_connection.send_command(cmd_type, cmd_args)
 
     def on_gearman_error(self, error_code, error_text):
-        gearman_logger.error('Received error from server: %s: %s' % (error_code, error_text))
+        gearman_logger.error(
+            "Received error from server: %s: %s" % (error_code, error_text)
+        )
         return False

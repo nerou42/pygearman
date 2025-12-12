@@ -18,12 +18,12 @@ def random_bytes():
     if isinstance(s, compat.binary_type):
         return s
     else:
-        return s.encode('ascii')
+        return s.encode("ascii")
 
 
 class MockGearmanConnection(GearmanConnection):
     def __init__(self, host=None, port=DEFAULT_GEARMAN_PORT):
-        host = host or '__testing_host__'
+        host = host or "__testing_host__"
         super(MockGearmanConnection, self).__init__(host=host, port=port)
 
         self._fail_on_bind = False
@@ -32,15 +32,15 @@ class MockGearmanConnection(GearmanConnection):
 
     def _create_client_socket(self):
         if self._fail_on_bind:
-            self.throw_exception(message='mock bind failure')
+            self.throw_exception(message="mock bind failure")
 
     def read_data_from_socket(self):
         if self._fail_on_read:
-            self.throw_exception(message='mock read failure')
+            self.throw_exception(message="mock read failure")
 
     def send_data_to_socket(self):
         if self._fail_on_write:
-            self.throw_exception(message='mock write failure')
+            self.throw_exception(message="mock write failure")
 
     def fileno(self):
         # 73 is the best number, so why not?
@@ -49,6 +49,7 @@ class MockGearmanConnection(GearmanConnection):
 
 class MockGearmanConnectionManager(GearmanConnectionManager):
     """Handy mock client base to test Worker/Client/Abstract ClientBases"""
+
     def poll_connections_once(self, poller, connection_map, timeout=None):
         return set(), set(), set()
 
@@ -70,8 +71,15 @@ class _GearmanAbstractTest(unittest.TestCase):
         self.setup_command_handler()
 
     def setup_connection_manager(self):
-        testing_attributes = {'command_handler_class': self.command_handler_class, 'connection_class': self.connection_class}
-        testing_client_class = type('MockGearmanTestingClient', (self.connection_manager_class, ), testing_attributes)
+        testing_attributes = {
+            "command_handler_class": self.command_handler_class,
+            "connection_class": self.connection_class,
+        }
+        testing_client_class = type(
+            "MockGearmanTestingClient",
+            (self.connection_manager_class,),
+            testing_attributes,
+        )
 
         self.connection_manager = testing_client_class()
 
@@ -81,15 +89,17 @@ class _GearmanAbstractTest(unittest.TestCase):
 
     def setup_command_handler(self):
         self.connection_manager.establish_connection(self.connection)
-        self.command_handler = self.connection_manager.connection_to_handler_map[self.connection]
+        self.command_handler = self.connection_manager.connection_to_handler_map[
+            self.connection
+        ]
 
     def generate_job(self):
         return self.job_class(
             self.connection,
             handle=random_bytes(),
-            task=b'__test_ability__',
+            task=b"__test_ability__",
             unique=random_bytes(),
-            data=random_bytes()
+            data=random_bytes(),
         )
 
     def generate_job_dict(self):
@@ -100,14 +110,12 @@ class _GearmanAbstractTest(unittest.TestCase):
         current_job = self.job_class(
             connection=self.connection,
             handle=random_bytes(),
-            task=b'__test_ability__',
+            task=b"__test_ability__",
             unique=random_bytes(),
-            data=random_bytes()
+            data=random_bytes(),
         )
         current_request = GearmanJobRequest(
-            current_job,
-            initial_priority=priority,
-            background=background
+            current_job, initial_priority=priority, background=background
         )
 
         assert current_request.state == JOB_UNKNOWN
