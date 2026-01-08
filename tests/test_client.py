@@ -161,8 +161,7 @@ class ClientTest(_GearmanAbstractTest):
 
         def fail_then_create_jobs(rx_conns, wr_conns, ex_conns):
             if (
-                self.connection_manager.current_failures
-                < self.connection_manager.expected_failures
+                self.connection_manager.current_failures < self.connection_manager.expected_failures
             ):
                 self.connection_manager.current_failures += 1
 
@@ -198,8 +197,7 @@ class ClientTest(_GearmanAbstractTest):
         self.connection_manager.wait_until_jobs_accepted([current_request])
         assert current_request.state == JOB_CREATED
         assert (
-            current_request.connection_attempts
-            == current_request.max_connection_attempts
+            current_request.connection_attempts == current_request.max_connection_attempts
         )
 
         # Second pass should fail as we JUST exceed our max attempts
@@ -215,8 +213,7 @@ class ClientTest(_GearmanAbstractTest):
             self.connection_manager.wait_until_jobs_accepted([current_request])
         assert current_request.state == JOB_UNKNOWN
         assert (
-            current_request.connection_attempts
-            == current_request.max_connection_attempts
+            current_request.connection_attempts == current_request.max_connection_attempts
         )
 
     def test_multiple_fg_job_submission(self):

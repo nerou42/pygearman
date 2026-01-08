@@ -160,8 +160,7 @@ class GearmanClient(GearmanConnectionManager):
         def continue_while_jobs_incomplete(any_activity):
             for current_request in job_requests:
                 if (
-                    is_request_incomplete(current_request)
-                    and current_request.state != JOB_UNKNOWN
+                    is_request_incomplete(current_request) and current_request.state != JOB_UNKNOWN
                 ):
                     return True
 
@@ -219,16 +218,14 @@ class GearmanClient(GearmanConnectionManager):
         def is_status_not_updated(current_request):
             current_status = current_request.status
             return bool(
-                current_status.get("time_received")
-                == current_status.get("last_time_received")
+                current_status.get("time_received") == current_status.get("last_time_received")
             )
 
         # Poll to make sure we send out our request for a status update
         def continue_while_status_not_updated(any_activity):
             for current_request in job_requests:
                 if (
-                    is_status_not_updated(current_request)
-                    and current_request.state != JOB_UNKNOWN
+                    is_status_not_updated(current_request) and current_request.state != JOB_UNKNOWN
                 ):
                     return True
 
@@ -314,12 +311,10 @@ class GearmanClient(GearmanConnectionManager):
     def send_job_request(self, current_request):
         """Attempt to send out a job request"""
         if (
-            current_request.connection_attempts
-            >= current_request.max_connection_attempts
+            current_request.connection_attempts >= current_request.max_connection_attempts
         ):
             raise ExceededConnectionAttempts(
-                "Exceeded %d connection attempt(s) :: %r"
-                % (current_request.max_connection_attempts, current_request)
+                "Exceeded %d connection attempt(s) :: %r" % (current_request.max_connection_attempts, current_request)
             )
 
         chosen_connection = self.establish_request_connection(current_request)

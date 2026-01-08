@@ -136,8 +136,7 @@ def has_source_changes(version=None):
                 "--",
                 SRC,
             ]
-        )
-        != 0
+        ) != 0
     )
 
 
