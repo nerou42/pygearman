@@ -20,7 +20,7 @@ You can install it using pip:
 
    pip install pygearman
 
-The library is tested with Python 3.6 and 3.12.
+The library is tested with Python 3.9 to 3.13.
 
 
 Usage
