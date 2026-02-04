@@ -132,7 +132,7 @@ class TestProtocolBinaryCommands(object):
         noop_command_buffer = array.array("b", noop_command_buffer)
         cmd_type, cmd_args, cmd_len = protocol.parse_binary_command(noop_command_buffer)
         assert cmd_type == protocol.GEARMAN_COMMAND_NOOP
-        assert cmd_args == dict()
+        assert cmd_args == {}
         assert cmd_len == len(noop_command_buffer)
 
     def test_parsing_single_arg(self):
@@ -167,7 +167,7 @@ class TestProtocolBinaryCommands(object):
             excess_echo_command_buffer
         )
         assert cmd_type == protocol.GEARMAN_COMMAND_ECHO_RES
-        assert cmd_args == dict(data=echoed_string)
+        assert cmd_args == {'data': echoed_string}
         assert cmd_len == len(excess_echo_command_buffer) - excess_bytes
 
     def test_parsing_multiple_args(self):
@@ -243,7 +243,7 @@ class TestProtocolBinaryCommands(object):
     def test_packing_response(self):
         # Test packing a response for a job (server side packing)
         cmd_type = protocol.GEARMAN_COMMAND_NO_JOB
-        cmd_args = dict()
+        cmd_args = {}
 
         expected_command_buffer = struct.pack(
             "!4sII", protocol.MAGIC_RES_STRING, cmd_type, 0
@@ -255,7 +255,7 @@ class TestProtocolBinaryCommands(object):
 
     def test_packing_no_arg(self):
         cmd_type = protocol.GEARMAN_COMMAND_NOOP
-        cmd_args = dict()
+        cmd_args = {}
 
         expected_command_buffer = struct.pack(
             "!4sII", protocol.MAGIC_REQ_STRING, cmd_type, 0
@@ -290,7 +290,11 @@ class TestProtocolBinaryCommands(object):
 
     def test_packing_multiple_args(self):
         cmd_type = protocol.GEARMAN_COMMAND_SUBMIT_JOB
-        cmd_args = dict(task=b"function", unique=b"12345", data=b"abcd")
+        cmd_args = {
+            'task': b"function",
+            'unique': b"12345",
+            'data': b"abcd"
+        }
 
         ordered_parameters = [cmd_args["task"], cmd_args["unique"], cmd_args["data"]]
 

@@ -157,9 +157,7 @@ class GearmanWorker(GearmanConnectionManager):
         return self.connection_to_handler_map[current_job.connection]
 
     def wait_until_updates_sent(self, multiple_gearman_jobs, poll_timeout=None):
-        connection_set = set(
-            [current_job.connection for current_job in multiple_gearman_jobs]
-        )
+        connection_set = {current_job.connection for current_job in multiple_gearman_jobs}
 
         def continue_while_updates_pending(any_activity):
             return any(

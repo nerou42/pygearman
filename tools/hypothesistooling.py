@@ -21,7 +21,7 @@ import os
 import re
 import sys
 import subprocess
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 
 def current_branch():
@@ -264,7 +264,7 @@ def update_changelog_and_version():
     with open(VERSION_FILE, "w") as o:
         o.write("\n".join(version_lines))
 
-    now = datetime.utcnow()
+    now = datetime.now(timezone.utc)
 
     date = max([d.strftime("%Y-%m-%d") for d in (now, now + timedelta(hours=1))])
 

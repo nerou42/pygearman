@@ -32,9 +32,12 @@ class GearmanJob(object):
         )
 
     def to_dict(self):
-        return dict(
-            task=self.task, job_handle=self.handle, unique=self.unique, data=self.data
-        )
+        return {
+            'task': self.task,
+            'job_handle': self.handle,
+            'unique': self.unique,
+            'data': self.data
+        }
 
 
 class GearmanJobRequest(object):

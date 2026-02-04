@@ -56,7 +56,7 @@ class _GearmanAbstractWorkerTest(_GearmanAbstractTest):
         observed_abilities = set()
 
         self.assert_sent_command(GEARMAN_COMMAND_RESET_ABILITIES)
-        for ability in expected_abilities:
+        for _ in expected_abilities:
             cmd_type, cmd_args = self.connection._outgoing_commands.popleft()
 
             assert get_command_name(cmd_type) == get_command_name(
@@ -91,9 +91,7 @@ class WorkerTest(_GearmanAbstractWorkerTest):
         assert (
             self.connection_manager.worker_abilities["fake_callback_one"] == fake_callback_one
         )
-        assert set(self.command_handler._handler_abilities) == set(
-            ["fake_callback_one"]
-        )
+        assert set(self.command_handler._handler_abilities) == {"fake_callback_one"}
 
         # Register another callback and make sure the command_handler sees the same functions
         self.connection_manager.register_task("fake_callback_two", fake_callback_two)
@@ -105,9 +103,7 @@ class WorkerTest(_GearmanAbstractWorkerTest):
         assert (
             self.connection_manager.worker_abilities["fake_callback_two"] == fake_callback_two
         )
-        assert set(self.command_handler._handler_abilities) == set(
-            ["fake_callback_one", "fake_callback_two"]
-        )
+        assert set(self.command_handler._handler_abilities) == {"fake_callback_one", "fake_callback_two"}
 
         # Unregister a callback and make sure the command_handler sees the same functions
         self.connection_manager.unregister_task("fake_callback_one")
@@ -116,9 +112,7 @@ class WorkerTest(_GearmanAbstractWorkerTest):
         assert (
             self.connection_manager.worker_abilities["fake_callback_two"] == fake_callback_two
         )
-        assert set(self.command_handler._handler_abilities) == set(
-            ["fake_callback_two"]
-        )
+        assert set(self.command_handler._handler_abilities) == {"fake_callback_two"}
 
     def test_setting_client_id(self):
         new_client_id = "HELLO"

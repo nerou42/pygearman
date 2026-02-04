@@ -299,7 +299,7 @@ def parse_text_command(in_buffer):
 
     # Fake gearman command "TEXT_COMMAND" used to process server admin client responses
     cmd_type = GEARMAN_COMMAND_TEXT_COMMAND
-    cmd_args = dict(raw_text=text_command)
+    cmd_args = {'raw_text': text_command}
     cmd_len = len(text_command) + 1
 
     return cmd_type, cmd_args, cmd_len

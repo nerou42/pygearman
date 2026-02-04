@@ -34,7 +34,7 @@ class MockGearmanConnection(GearmanConnection):
         if self._fail_on_bind:
             self.throw_exception(message="mock bind failure")
 
-    def read_data_from_socket(self):
+    def read_data_from_socket(self, bytes_to_read=4096):
         if self._fail_on_read:
             self.throw_exception(message="mock read failure")
 
