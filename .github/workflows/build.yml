@@ -15,9 +15,21 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      - name: Install the latest version of uv
+        uses: astral-sh/setup-uv@v7
+      - name: Install tox
+        run: uv tool install --python-preference only-managed --python 3.13 tox --with tox-uv --with tox-gh
+      - name: Setup test suite
+        run: tox run -vv --notest --skip-missing-interpreters false
+        env:
+          TOX_GH_MAJOR_MINOR: 3.13
+      - name: Run test suite
+        run: tox run --skip-pkg-install -- -k 'not get_job_status and not status_request'
+        env:
+          TOX_GH_MAJOR_MINOR: 3.13
       - uses: SonarSource/sonarqube-scan-action@v6
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
