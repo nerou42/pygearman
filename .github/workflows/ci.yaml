@@ -23,9 +23,9 @@ jobs:
           - "3.10"
           - "3.9"
           - "3.7"
-          #- "3.6"
-          #- "3.5"
-          #- "2.7"
+          - "3.6"
+          - "3.5"
+          - "2.7"
         os:
           - ubuntu-latest
     steps:
@@ -33,12 +33,12 @@ jobs:
       - name: Install the latest version of uv
         uses: astral-sh/setup-uv@v7
       - name: Install tox
-        run: uv tool install --python-preference only-managed --python 3.14 tox --with tox-uv --with tox-gh
+        run: uv tool install --python-preference only-managed --python ${{ matrix.env }} tox --with tox-uv --with tox-gh
       - name: Setup test suite
         run: tox run -vv --notest --skip-missing-interpreters false
         env:
           TOX_GH_MAJOR_MINOR: ${{ matrix.env }}
       - name: Run test suite
-        run: tox run --skip-pkg-install -e test_no_gearman
+        run: tox run --skip-pkg-install -- -k 'not get_job_status and not status_request'
         env:
           TOX_GH_MAJOR_MINOR: ${{ matrix.env }}
