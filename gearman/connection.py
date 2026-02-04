@@ -8,7 +8,7 @@ import ssl
 import struct
 import time
 
-import gearman.compat as compat
+from gearman import compat
 from gearman.errors import ConnectionError, ProtocolError, ServerUnavailable
 from gearman.constants import DEFAULT_GEARMAN_PORT, _DEBUG_MODE_
 from gearman.protocol import (
@@ -139,13 +139,13 @@ class GearmanConnection(object):
             client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 
             if self.use_ssl:
-                client_socket = ssl.wrap_socket(
+                context = ssl.create_default_context(cafile=self.ca_certs)
+                context.minimum_version = ssl.TLSVersion.TLSv1_2
+                context.load_cert_chain(self.certfile, self.keyfile)
+
+                client_socket = context.wrap_socket(
                     client_socket,
-                    keyfile=self.keyfile,
-                    certfile=self.certfile,
-                    ca_certs=self.ca_certs,
-                    cert_reqs=ssl.CERT_REQUIRED,
-                    ssl_version=ssl.PROTOCOL_TLSv1,
+                    server_hostname=self.gearman_host
                 )
 
             client_socket.connect((self.gearman_host, self.gearman_port))

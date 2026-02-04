@@ -3,7 +3,8 @@
 import errno
 import logging
 
-from . import compat
+import gearman
+from gearman import compat
 import gearman.io
 import gearman.util
 from gearman.connection import GearmanConnection
@@ -240,7 +241,7 @@ class GearmanConnectionManager(object):
             self._register_connections_with_poller(submitted_connections, poller)
 
             time_remaining = stopwatch.get_time_remaining()
-            if time_remaining == 0.0:
+            if time_remaining is not None and time_remaining <= 0.0:
                 break
 
             # Do a single robust select and handle all connection activity
