@@ -76,6 +76,15 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         server_response = self.pop_response(GEARMAN_COMMAND_ECHO_REQ)
         assert server_response == ECHO_STRING
 
+    def test_ping_server_bytes(self):
+        self.command_handler.send_echo_request(ECHO_STRING)
+        self.assert_sent_command(GEARMAN_COMMAND_ECHO_REQ, data=ECHO_STRING)
+        assert self.command_handler._sent_commands[0] == GEARMAN_COMMAND_ECHO_REQ
+
+        self.command_handler.recv_command(GEARMAN_COMMAND_ECHO_RES, data=ECHO_STRING.encode())
+        server_response = self.pop_response(GEARMAN_COMMAND_ECHO_REQ)
+        assert server_response == ECHO_STRING
+
     def test_state_and_protocol_errors_for_status(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
 
@@ -92,6 +101,23 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
         assert server_response == ()
 
+    def test_state_and_protocol_errors_for_status_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
+
+        # Test premature popping as this we aren't until ready we see the '.'
+        with pytest.raises(InvalidAdminClientState):
+            self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
+
+        # Test malformed server status
+        with pytest.raises(ProtocolError):
+            self.recv_server_response(b"\t".join([b"12", b"IP-A", b"CLIENT-A"]))
+
+        self.recv_server_response(b".")
+
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
+        assert server_response == ()
+
+
     def test_response_ready(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
 
@@ -99,6 +125,15 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         assert not self.command_handler.response_ready
 
         self.recv_server_response(".")
+        assert self.command_handler.response_ready
+
+    def test_response_ready_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
+
+        # We aren't ready until we see the '.'
+        assert not self.command_handler.response_ready
+
+        self.recv_server_response(b".")
         assert self.command_handler.response_ready
 
     def test_multiple_status(self):
@@ -121,11 +156,41 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         assert another_response["running"] == 4
         assert another_response["workers"] == 23
 
+    def test_multiple_status_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
+        self.recv_server_response(b"\t".join([b"test_function", b"1", b"5", b"17"]))
+        self.recv_server_response(b"\t".join([b"another_function", b"2", b"4", b"23"]))
+        self.recv_server_response(b".")
+
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
+        assert len(server_response) == 2
+
+        test_response, another_response = server_response
+        assert test_response["task"] == "test_function"
+        assert test_response["queued"] == 1
+        assert test_response["running"] == 5
+        assert test_response["workers"] == 17
+
+        assert another_response["task"] == "another_function"
+        assert another_response["queued"] == 2
+        assert another_response["running"] == 4
+        assert another_response["workers"] == 23
+
     def test_version(self):
         expected_version = "0.12345"
 
         self.send_server_command(GEARMAN_SERVER_COMMAND_VERSION)
         self.recv_server_response(expected_version)
+
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_VERSION)
+        assert expected_version == server_response
+
+    def test_version_bytes(self):
+        expected_version_bytes = b"0.12345"
+        expected_version = "0.12345"
+
+        self.send_server_command(GEARMAN_SERVER_COMMAND_VERSION)
+        self.recv_server_response(expected_version_bytes)
 
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_VERSION)
         assert expected_version == server_response
@@ -173,6 +238,30 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         assert another_response["client_id"] == "CLIENT-B"
         assert another_response["tasks"] == ("function-C",)
 
+    def test_multiple_workers_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_WORKERS)
+        self.recv_server_response(
+            b" ".join([b"12", b"IP-A", b"CLIENT-A", b":", b"function-A", b"function-B"])
+        )
+        self.recv_server_response(
+            b" ".join([b"13", b"IP-B", b"CLIENT-B", b":", b"function-C"])
+        )
+        self.recv_server_response(".")
+
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_WORKERS)
+        assert len(server_response) == 2
+
+        test_response, another_response = server_response
+        assert test_response["file_descriptor"] == "12"
+        assert test_response["ip"] == "IP-A"
+        assert test_response["client_id"] == "CLIENT-A"
+        assert test_response["tasks"] == ("function-A", "function-B")
+
+        assert another_response["file_descriptor"] == "13"
+        assert another_response["ip"] == "IP-B"
+        assert another_response["client_id"] == "CLIENT-B"
+        assert another_response["tasks"] == ("function-C",)
+
     def test_maxqueue(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_MAXQUEUE)
         with pytest.raises(ProtocolError):
@@ -183,6 +272,19 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
             self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
 
         self.recv_server_response("OK")
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
+        assert server_response == "OK"
+
+    def test_maxqueue_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_MAXQUEUE)
+        with pytest.raises(ProtocolError):
+            self.recv_server_response("NOT OK")
+
+        # Pop prematurely
+        with pytest.raises(InvalidAdminClientState):
+            self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
+
+        self.recv_server_response(b"OK")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_MAXQUEUE)
         assert server_response == "OK"
 
@@ -230,6 +332,17 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
         assert server_response == ()
 
+    def test_show_jobs_empty_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+
+        # Pop prematurely
+        with pytest.raises(InvalidAdminClientState):
+            self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+
+        self.recv_server_response(b".")
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+        assert server_response == ()
+
     def test_show_jobs_incorrect_tokens(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
@@ -247,6 +360,23 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
             self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
 
         self.recv_server_response(".")
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+        assert server_response == (
+            {"handle": "foo", "queued": 1, "canceled": 2, "enabled": 3},
+            {"handle": "bar", "queued": 4, "canceled": 5, "enabled": 6},
+        )
+
+    def test_show_jobs_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+
+        self.recv_server_response(b"foo\t1\t2\t3")
+        self.recv_server_response(b"bar\t4\t5\t6")
+
+        # Pop prematurely
+        with pytest.raises(InvalidAdminClientState):
+            self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
+
+        self.recv_server_response(b".")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_JOBS)
         assert server_response == (
             {"handle": "foo", "queued": 1, "canceled": 2, "enabled": 3},
@@ -273,6 +403,19 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         self.recv_server_response("bar")
 
         self.recv_server_response(".")
+        server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
+        assert server_response == (
+            {"unique": ["foo"]},
+            {"unique": ["bar"]},
+        )
+
+    def test_show_unique_jobs_bytes(self):
+        self.send_server_command(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
+
+        self.recv_server_response(b"foo")
+        self.recv_server_response(b"bar")
+
+        self.recv_server_response(b".")
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_SHOW_UNIQUE_JOBS)
         assert server_response == (
             {"unique": ["foo"]},
