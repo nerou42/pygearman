@@ -117,7 +117,6 @@ class CommandHandlerStateMachineTest(_StateMachineTest):
         server_response = self.pop_response(GEARMAN_SERVER_COMMAND_STATUS)
         assert server_response == ()
 
-
     def test_response_ready(self):
         self.send_server_command(GEARMAN_SERVER_COMMAND_STATUS)
 
