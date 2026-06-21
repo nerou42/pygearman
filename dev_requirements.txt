@@ -4,11 +4,11 @@
 #
 #    pip-compile dev_requirements.in
 #
-coverage[toml]==7.14.0
+coverage[toml]==7.14.2
     # via
     #   -r dev_requirements.in
     #   pytest-cov
-hypothesis==6.152.6
+hypothesis==6.155.7
     # via -r dev_requirements.in
 iniconfig==2.3.0
     # via pytest
@@ -22,7 +22,7 @@ py==1.11.0
     # via -r dev_requirements.in
 pygments==2.20.0
     # via pytest
-pytest==9.0.3
+pytest==9.1.1
     # via
     #   -r dev_requirements.in
     #   pytest-cov
