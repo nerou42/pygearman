@@ -97,11 +97,13 @@ class GearmanAdminClientCommandHandler(GearmanCommandHandler):
     ###########################################################
 
     def recv_echo_res(self, data):
+        data = data.decode() if isinstance(data, bytes) else data
         self._recv_responses.append(data)
         return False
 
     def recv_text_command(self, raw_text):
         """Catch GEARMAN_COMMAND_TEXT_COMMAND's and forward them onto their respective recv_server_* callbacks"""
+        raw_text = raw_text.decode() if isinstance(raw_text, bytes) else raw_text
         if not self._sent_commands:
             raise InvalidAdminClientState("Received an unexpected server response")
 

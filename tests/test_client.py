@@ -380,7 +380,7 @@ class ClientTest(_GearmanAbstractTest):
             self.command_handler.recv_command(
                 GEARMAN_COMMAND_STATUS_RES,
                 job_handle=single_request.job.handle,
-                known="1",
+                known=b"1",
                 running="0",
                 numerator="0",
                 denominator="1",
@@ -645,8 +645,8 @@ class ClientCommandHandlerStateMachineTest(_GearmanAbstractTest):
         self.command_handler.recv_command(
             GEARMAN_COMMAND_STATUS_RES,
             job_handle=job_handle,
-            known="1",
-            running="1",
+            known=b"1",
+            running=b"1",
             numerator="0",
             denominator="1",
         )
