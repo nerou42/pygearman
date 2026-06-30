@@ -6,7 +6,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: pygearman
+name: PyPi Publishing
 
 on:
   release:
@@ -28,8 +28,8 @@ jobs:
 
       - name: Build release distributions
         run:
-          python -m pip install build
-          python -m build
+          python3 -m pip install build
+          python3 -m build
 
       - name: Upload distributions
         uses: actions/upload-artifact@v4
@@ -50,7 +50,7 @@ jobs:
     environment:
       name: pypi
       # OPTIONAL: uncomment and update to include your PyPI project URL in the deployment status:
-      # url: https://pypi.org/p/YOURPROJECT
+      url: https://pypi.org/p/pygearman
       #
       # ALTERNATIVE: if your GitHub Release name is the PyPI project version string
       # ALTERNATIVE: exactly, uncomment the following line instead:
