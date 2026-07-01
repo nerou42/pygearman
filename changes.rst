@@ -5,7 +5,7 @@ Changelog
 This is a record of all releases of pygearman.
 
 ------------------
-0.2.4 - 2026-06-30
+0.2.5 - 2026-06-30
 ------------------
 
 Enable pygearman to both handle text and bytes
