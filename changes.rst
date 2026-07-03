@@ -5,6 +5,13 @@ Changelog
 This is a record of all releases of pygearman.
 
 ------------------
+0.2.6 - 2026-07-03
+------------------
+
+Adapted current_job.task back to expected behaviour (expected type of current_job.task is bytes, not string)
+
+
+------------------
 0.2.5 - 2026-06-30
 ------------------
 
