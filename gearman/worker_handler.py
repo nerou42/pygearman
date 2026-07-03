@@ -168,7 +168,7 @@ class GearmanWorkerCommandHandler(GearmanCommandHandler):
             raise InvalidWorkerState("Received a job when we weren't expecting one")
 
         gearman_job = self.connection_manager.create_job(
-            self, job_handle, task.decode("utf-8"), unique, self.decode_data(data)
+            self, job_handle, task, unique, self.decode_data(data)
         )
 
         # Create a new job
