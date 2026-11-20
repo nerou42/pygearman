@@ -4,7 +4,7 @@
 #
 #    pip-compile tool_requirements.in
 #
-certifi==2026.6.17
+certifi==2026.10.18
     # via requests
 cffi==2.0.0
     # via cryptography
